@@ -1,0 +1,29 @@
+import { NavLink } from "react-router-dom";
+
+import "./Header.css";
+
+function getNavLinkClass({ isActive }: { isActive: boolean }) {
+  return isActive
+    ? "header__nav-link header__nav-link_active"
+    : "header__nav-link";
+}
+
+function Header() {
+  return (
+    <header className="header">
+      <div className="header__inner">
+        <span className="header__logo">Recipe Browser</span>
+        <nav className="header__nav">
+          <NavLink to="/" className={getNavLinkClass}>
+            Recipes
+          </NavLink>
+          <NavLink to="/favorites" className={getNavLinkClass}>
+            Favorites
+          </NavLink>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+export default Header;
