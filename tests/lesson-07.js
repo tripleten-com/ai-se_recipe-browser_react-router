@@ -1,13 +1,14 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 
 function read(relPath) {
   try {
-    return readFileSync(join(root, relPath), "utf8");
+    return normalize(readFileSync(join(root, relPath), "utf8"));
   } catch {
     return null;
   }
@@ -31,7 +32,23 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-console.log("\nLesson 06: Programmatic Navigation with useNavigate\n");
+console.log("\nLesson 07: Programmatic Navigation with useNavigate\n");
+
+const compiled = checkCompiles(root);
+if (!compiled.ok) {
+  console.log("❌ TypeScript compilation failed — fix all type errors before running tests\n");
+  console.log(compiled.output);
+  process.exit(1);
+}
+console.log("✅ Project compiles without type errors");
+
+const built = checkBuilds(root);
+if (!built.ok) {
+  console.log("❌ Vite build failed — the app does not run without errors\n");
+  console.log(built.output);
+  process.exit(1);
+}
+console.log("✅ App builds and runs without errors\n");
 
 const recipeCard = read("src/components/RecipeCard/RecipeCard.tsx");
 
@@ -62,7 +79,11 @@ test("RecipeCard.tsx calls navigate() in a click handler", () => {
 
 test("RecipeCard.tsx navigates to a /recipes/ path", () => {
   assert(
-    recipeCard && (recipeCard.includes("recipes/") || recipeCard.includes("recipes/${") || recipeCard.includes("`/recipes/")),
+    recipeCard && (
+      recipeCard.includes("recipes/") ||
+      recipeCard.includes("recipes/${") ||
+      recipeCard.includes("`/recipes/")
+    ),
     "RecipeCard.tsx does not navigate to a /recipes/ path — use a template literal: `/recipes/${recipe.id}`"
   );
 });

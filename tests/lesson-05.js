@@ -1,13 +1,14 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 
 function read(relPath) {
   try {
-    return readFileSync(join(root, relPath), "utf8");
+    return normalize(readFileSync(join(root, relPath), "utf8"));
   } catch {
     return null;
   }
@@ -32,6 +33,22 @@ function assert(condition, message) {
 }
 
 console.log("\nLesson 05: Dynamic Routes with useParams\n");
+
+const compiled = checkCompiles(root);
+if (!compiled.ok) {
+  console.log("❌ TypeScript compilation failed — fix all type errors before running tests\n");
+  console.log(compiled.output);
+  process.exit(1);
+}
+console.log("✅ Project compiles without type errors");
+
+const built = checkBuilds(root);
+if (!built.ok) {
+  console.log("❌ Vite build failed — the app does not run without errors\n");
+  console.log(built.output);
+  process.exit(1);
+}
+console.log("✅ App builds and runs without errors\n");
 
 const app = read("src/components/App/App.tsx");
 const recipePage = read("src/pages/RecipePage.tsx");
@@ -70,7 +87,11 @@ test("RecipePage.tsx calls useParams()", () => {
 
 test("RecipePage.tsx handles the case where no recipe matches", () => {
   assert(
-    recipePage && (recipePage.includes("not found") || recipePage.includes("!recipe") || recipePage.includes("Recipe not")),
+    recipePage && (
+      recipePage.includes("not found") ||
+      recipePage.includes("!recipe") ||
+      recipePage.includes("Recipe not")
+    ),
     "RecipePage.tsx does not handle the case where the recipe id doesn't match any recipe"
   );
 });

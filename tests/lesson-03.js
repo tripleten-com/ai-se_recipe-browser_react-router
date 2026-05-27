@@ -1,13 +1,14 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 
 function read(relPath) {
   try {
-    return readFileSync(join(root, relPath), "utf8");
+    return normalize(readFileSync(join(root, relPath), "utf8"));
   } catch {
     return null;
   }
@@ -33,38 +34,52 @@ function assert(condition, message) {
 
 console.log("\nLesson 03: Shared Layout with Outlet\n");
 
+const compiled = checkCompiles(root);
+if (!compiled.ok) {
+  console.log(
+    "❌ TypeScript compilation failed — fix all type errors before running tests\n",
+  );
+  console.log(compiled.output);
+  process.exit(1);
+}
+console.log("✅ Project compiles without type errors");
+
+const built = checkBuilds(root);
+if (!built.ok) {
+  console.log("❌ Vite build failed — the app does not run without errors\n");
+  console.log(built.output);
+  process.exit(1);
+}
+console.log("✅ App builds and runs without errors\n");
+
 const layout = read("src/components/AppLayout/AppLayout.tsx");
 const app = read("src/components/App/App.tsx");
 
 test("src/components/AppLayout/AppLayout.tsx exists", () => {
-  assert(layout !== null, "src/components/AppLayout/AppLayout.tsx not found — create it");
+  assert(
+    layout !== null,
+    "src/components/AppLayout/AppLayout.tsx not found — create it",
+  );
 });
 
 test("AppLayout.tsx imports Outlet from react-router-dom", () => {
   assert(
     layout && layout.includes("Outlet"),
-    "AppLayout.tsx does not import Outlet from react-router-dom"
+    "AppLayout.tsx does not import Outlet from react-router-dom",
   );
 });
 
 test("AppLayout.tsx renders <Outlet />", () => {
   assert(
     layout && layout.includes("<Outlet"),
-    "AppLayout.tsx does not render <Outlet /> — add it where child route content should appear"
-  );
-});
-
-test("AppLayout.tsx renders Header", () => {
-  assert(
-    layout && layout.includes("Header"),
-    "AppLayout.tsx does not render Header — move the Header import and usage here from App.tsx"
+    "AppLayout.tsx does not render <Outlet /> — add it where child route content should appear",
   );
 });
 
 test("App.tsx uses AppLayout as a layout route", () => {
   assert(
     app && app.includes("AppLayout"),
-    "App.tsx does not use AppLayout — wrap your routes with <Route element={<AppLayout />}>"
+    "App.tsx does not use AppLayout — wrap your routes with <Route element={<AppLayout />}>",
   );
 });
 

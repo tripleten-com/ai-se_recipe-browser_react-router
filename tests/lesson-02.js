@@ -1,13 +1,14 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 
 function read(relPath) {
   try {
-    return readFileSync(join(root, relPath), "utf8");
+    return normalize(readFileSync(join(root, relPath), "utf8"));
   } catch {
     return null;
   }
@@ -32,6 +33,22 @@ function assert(condition, message) {
 }
 
 console.log("\nLesson 02: Defining Routes\n");
+
+const compiled = checkCompiles(root);
+if (!compiled.ok) {
+  console.log("❌ TypeScript compilation failed — fix all type errors before running tests\n");
+  console.log(compiled.output);
+  process.exit(1);
+}
+console.log("✅ Project compiles without type errors");
+
+const built = checkBuilds(root);
+if (!built.ok) {
+  console.log("❌ Vite build failed — the app does not run without errors\n");
+  console.log(built.output);
+  process.exit(1);
+}
+console.log("✅ App builds and runs without errors\n");
 
 const app = read("src/components/App/App.tsx");
 const homePage = read("src/pages/HomePage.tsx");
@@ -58,7 +75,7 @@ test("src/pages/FavoritesPage.tsx exists", () => {
 
 test("App.tsx has a route for the home path", () => {
   assert(
-    app && (app.includes('path="/"') || app.includes("path='/'") || app.includes("index")),
+    app && (/path\s*=\s*["']\/["']/.test(app) || app.includes("index")),
     'App.tsx does not have a route for "/" — add a Route with path="/" or the index prop'
   );
 });
