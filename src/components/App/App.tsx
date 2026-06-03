@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import type { Recipe } from "../../types";
+import { Routes, Route } from "react-router-dom";
 
+import type { Recipe } from "../../types";
 import { allRecipes } from "../../data/recipes";
 import Header from "../Header/Header";
-import RecipeList from "../RecipeList/RecipeList";
+import HomePage from "../../pages/HomePage";
+import FavoritesPage from "../../pages/FavoritesPage";
 import "./App.css";
 
 function App() {
@@ -11,7 +13,6 @@ function App() {
     const stored = localStorage.getItem("favorites");
     return stored ? new Set<string>(JSON.parse(stored)) : new Set<string>();
   });
-  const [query, setQuery] = useState("");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,10 +29,6 @@ function App() {
       return () => clearTimeout(timeoutId);
     }, 500);
   }, []);
-
-  const filteredRecipes = recipes.filter((recipe) =>
-    recipe.title.toLowerCase().includes(query.toLowerCase()),
-  );
 
   if (isLoading) {
     return <p className="app__loading">Loading...</p>;
@@ -51,21 +48,28 @@ function App() {
     <div className="app">
       <Header />
       <main className="app__main">
-        <div className="app__container">
-          <input
-            className="app__search"
-            type="search"
-            placeholder="Search recipes..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomePage
+                recipes={recipes}
+                favorites={favorites}
+                onToggleFavorite={handleToggleFavorite}
+              />
+            }
           />
-          <h1 className="app__heading">Recipes</h1>
-          <RecipeList
-            recipes={filteredRecipes}
-            favorites={favorites}
-            onToggleFavorite={handleToggleFavorite}
+          <Route
+            path="/favorites"
+            element={
+              <FavoritesPage
+                recipes={recipes}
+                favorites={favorites}
+                onToggleFavorite={handleToggleFavorite}
+              />
+            }
           />
-        </div>
+        </Routes>
       </main>
     </div>
   );
