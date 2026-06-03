@@ -6,6 +6,8 @@ import { allRecipes } from "../../data/recipes";
 import AppLayout from "../AppLayout/AppLayout";
 import HomePage from "../../pages/HomePage";
 import FavoritesPage from "../../pages/FavoritesPage";
+import RecipePage from "../../pages/RecipePage";
+
 import "./App.css";
 
 function App() {
@@ -67,6 +69,7 @@ function App() {
             />
           }
         />
+        <Route path="/recipes/:id" element={<RecipePage recipes={recipes} />} />
       </Route>
     </Routes>
   );
