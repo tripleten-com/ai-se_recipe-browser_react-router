@@ -13,7 +13,7 @@ type Props = {
 
 function RecipeCard({ recipe, onToggleFavorite, isFavorited }: Props) {
   return (
-    <article className="recipe-card">
+    <article className="recipe-card" aria-label="See recipe details">
       <span
         style={{
           backgroundColor: categoryColors[recipe.category.toLocaleLowerCase()],
