@@ -36,7 +36,9 @@ console.log("\nLesson 02: Defining Routes\n");
 
 const compiled = checkCompiles(root);
 if (!compiled.ok) {
-  console.log("❌ TypeScript compilation failed — fix all type errors before running tests\n");
+  console.log(
+    "❌ TypeScript compilation failed — fix all type errors before running tests\n",
+  );
   console.log(compiled.output);
   process.exit(1);
 }
@@ -61,36 +63,42 @@ test("App.tsx exists", () => {
 test("App.tsx imports Routes and Route from react-router-dom", () => {
   assert(
     app && app.includes("Routes") && app.includes("Route"),
-    "App.tsx does not import Routes and Route from react-router-dom"
+    "App.tsx does not import Routes and Route from react-router-dom",
   );
 });
 
 test("src/pages/HomePage.tsx exists", () => {
-  assert(homePage !== null, "src/pages/HomePage.tsx not found — create it in the src/pages/ directory");
+  assert(
+    homePage !== null,
+    "src/pages/HomePage.tsx not found — create it in the src/pages/ directory",
+  );
 });
 
 test("src/pages/FavoritesPage.tsx exists", () => {
-  assert(favPage !== null, "src/pages/FavoritesPage.tsx not found — create it in the src/pages/ directory");
+  assert(
+    favPage !== null,
+    "src/pages/FavoritesPage.tsx not found — create it in the src/pages/ directory",
+  );
 });
 
 test("App.tsx has a route for the home path", () => {
   assert(
     app && (/path\s*=\s*["']\/["']/.test(app) || app.includes("index")),
-    'App.tsx does not have a route for "/" — add a Route with path="/" or the index prop'
+    'App.tsx does not have a route for "/" — add a Route with path="/" or the index prop',
   );
 });
 
 test("App.tsx has a route for /favorites", () => {
   assert(
-    app && (app.includes('"favorites"') || app.includes("'favorites'") || app.includes('"/favorites"')),
-    'App.tsx does not have a route for "favorites" — add a Route with path="favorites"'
+    app && (app.includes('"/favorites"') || app.includes("'/favorites'")),
+    'App.tsx does not have a route for "favorites" — add a Route with path="favorites"',
   );
 });
 
 test("HomePage.tsx manages query state locally", () => {
   assert(
     homePage && homePage.includes("useState"),
-    "HomePage.tsx does not use useState — the search query state should live here"
+    "HomePage.tsx does not use useState — the search query state should live here",
   );
 });
 

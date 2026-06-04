@@ -56,6 +56,10 @@
   cursor: pointer;
 }
 
+.recipe-card__favorite-icon {
+  width: 16px;
+}
+
 .recipe-card__favorite:hover {
   opacity: 40%;
 }
