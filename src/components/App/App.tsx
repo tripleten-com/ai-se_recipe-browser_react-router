@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import type { Recipe } from "../../types";
 import { Routes, Route } from "react-router-dom";
 
+import type { Recipe } from "../../types";
 import { allRecipes } from "../../data/recipes";
 import HomePage from "../../pages/HomePage";
 import FavoritesPage from "../../pages/FavoritesPage";

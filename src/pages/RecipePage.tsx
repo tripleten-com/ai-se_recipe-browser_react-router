@@ -1,4 +1,7 @@
 import { useParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+
+import { categoryColors } from "../data/recipes";
 
 import type { Recipe } from "../types";
 
@@ -18,10 +21,20 @@ function RecipePage({ recipes }: Props) {
   return (
     <article className="app__container">
       <div className="recipe-detail">
-        <span>{recipe.category}</span>
+        <span
+          style={{
+            backgroundColor:
+              categoryColors[recipe.category.toLocaleLowerCase()],
+          }}
+          className="recipe-detail__category"
+        >
+          {recipe.category}
+        </span>
         <h1>{recipe.title}</h1>
         <p>{recipe.description}</p>
-        <div>{recipe.content}</div>
+        <div className="markdown">
+          <ReactMarkdown>{recipe.content}</ReactMarkdown>
+        </div>
       </div>
     </article>
   );
