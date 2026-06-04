@@ -5,7 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import { allRecipes } from "../../data/recipes";
 import HomePage from "../../pages/HomePage";
 import FavoritesPage from "../../pages/FavoritesPage";
-import Header from "../Header/Header";
+import AppLayout from "../AppLayout/AppLayout";
 import "./App.css";
 
 function App() {
@@ -46,33 +46,30 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <Header />
-      <main className="app__main">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <HomePage
-                recipes={recipes}
-                favorites={favorites}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            }
-          />
-          <Route
-            path="/favorites"
-            element={
-              <FavoritesPage
-                recipes={recipes}
-                favorites={favorites}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            }
-          />
-        </Routes>
-      </main>
-    </div>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route
+          path="/"
+          element={
+            <HomePage
+              recipes={recipes}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+            />
+          }
+        />
+        <Route
+          path="/favorites"
+          element={
+            <FavoritesPage
+              recipes={recipes}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+            />
+          }
+        />
+      </Route>
+    </Routes>
   );
 }
 
