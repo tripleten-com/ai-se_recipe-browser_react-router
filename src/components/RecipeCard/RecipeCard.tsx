@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 import type { Recipe } from "../../types";
 import { categoryColors } from "../../data/recipes";
 import "./RecipeCard.css";
@@ -12,8 +14,16 @@ type Props = {
 };
 
 function RecipeCard({ recipe, onToggleFavorite, isFavorited }: Props) {
+  const navigate = useNavigate();
+
   return (
     <article className="recipe-card">
+      <button
+        type="button"
+        aria-label="See recipe details"
+        className="recipe-card__view"
+        onClick={() => navigate(`/recipes/${recipe.id}`)}
+      ></button>
       <span
         style={{
           backgroundColor: categoryColors[recipe.category.toLocaleLowerCase()],

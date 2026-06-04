@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import type { Recipe } from "../../types";
 import { categoryColors } from "../../data/recipes";
@@ -20,9 +20,9 @@ function RecipeCard({ recipe, onToggleFavorite, isFavorited }: Props) {
     <article className="recipe-card">
       <button
         type="button"
+        aria-label="See recipe details"
         className="recipe-card__view"
         onClick={() => navigate(`/recipes/${recipe.id}`)}
-        aria-label="View recipe details"
       ></button>
       <span
         style={{
