@@ -8,6 +8,7 @@ import FavoritesPage from "../../pages/FavoritesPage";
 import RecipePage from "../../pages/RecipePage";
 import AppLayout from "../AppLayout/AppLayout";
 import "./App.css";
+import NotFoundPage from "../../pages/NotFoundPage";
 
 function App() {
   const [favorites, setFavorites] = useState<Set<string>>(() => {
@@ -70,6 +71,7 @@ function App() {
           }
         />
         <Route path="/recipes/:id" element={<RecipePage recipes={recipes} />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );
