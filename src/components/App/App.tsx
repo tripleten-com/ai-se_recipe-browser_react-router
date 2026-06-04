@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import { allRecipes } from "../../data/recipes";
 import HomePage from "../../pages/HomePage";
 import FavoritesPage from "../../pages/FavoritesPage";
+import RecipePage from "../../pages/RecipePage";
 import AppLayout from "../AppLayout/AppLayout";
 import "./App.css";
 
@@ -68,6 +69,7 @@ function App() {
             />
           }
         />
+        <Route path="/recipes/:id" element={<RecipePage recipes={recipes} />} />
       </Route>
     </Routes>
   );
