@@ -7,6 +7,7 @@ import AppLayout from "../AppLayout/AppLayout";
 import HomePage from "../../pages/HomePage";
 import FavoritesPage from "../../pages/FavoritesPage";
 import RecipePage from "../../pages/RecipePage";
+import NotFoundPage from "../../pages/NotFoundPage";
 
 import "./App.css";
 
@@ -70,6 +71,7 @@ function App() {
           }
         />
         <Route path="/recipes/:id" element={<RecipePage recipes={recipes} />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );
