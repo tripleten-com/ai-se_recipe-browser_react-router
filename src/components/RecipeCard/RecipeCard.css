@@ -60,3 +60,10 @@
 .recipe-card__favorite:hover {
   opacity: 40%;
 }
+
+.recipe-card__view {
+  position: absolute;
+  inset: 0;
+  background-color: transparent;
+  border: none;
+}
