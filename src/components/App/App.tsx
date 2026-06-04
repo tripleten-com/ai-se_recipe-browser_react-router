@@ -55,7 +55,7 @@ function App() {
           <input
             className="app__search"
             type="search"
-            placeholder="Filter recipes..."
+            placeholder="Search recipes..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
