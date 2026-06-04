@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import type { Recipe } from "../types";
 import RecipeList from "../components/RecipeList/RecipeList";
 
@@ -11,7 +10,6 @@ type Props = {
 
 function HomePage({ recipes, favorites, onToggleFavorite }: Props) {
   const [query, setQuery] = useState("");
-
   const filteredRecipes = recipes.filter((recipe) =>
     recipe.title.toLowerCase().includes(query.toLowerCase()),
   );
@@ -21,7 +19,7 @@ function HomePage({ recipes, favorites, onToggleFavorite }: Props) {
       <input
         className="app__search"
         type="search"
-        placeholder="Filter recipes..."
+        placeholder="Search recipes..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />

@@ -14,7 +14,7 @@ function FavoritesPage({ recipes, favorites, onToggleFavorite }: Props) {
     <div className="app__container">
       <h1 className="app__heading">Favorites</h1>
       {favoritedRecipes.length === 0 ? (
-        <p>No favorites yet</p>
+        <p className="app__message">No favorites yet.</p>
       ) : (
         <RecipeList
           recipes={favoritedRecipes}

@@ -3,19 +3,19 @@ import { Routes, Route } from "react-router-dom";
 
 import type { Recipe } from "../../types";
 import { allRecipes } from "../../data/recipes";
-import AppLayout from "../AppLayout/AppLayout";
 import HomePage from "../../pages/HomePage";
 import FavoritesPage from "../../pages/FavoritesPage";
 import RecipePage from "../../pages/RecipePage";
-import NotFoundPage from "../../pages/NotFoundPage";
-
+import AppLayout from "../AppLayout/AppLayout";
 import "./App.css";
+import NotFoundPage from "../../pages/NotFoundPage";
 
 function App() {
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     const stored = localStorage.getItem("favorites");
     return stored ? new Set<string>(JSON.parse(stored)) : new Set<string>();
   });
+
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

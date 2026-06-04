@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
+import type { Recipe } from "../../types";
 import { Routes, Route } from "react-router-dom";
 
-import type { Recipe } from "../../types";
 import { allRecipes } from "../../data/recipes";
-import AppLayout from "../AppLayout/AppLayout";
 import HomePage from "../../pages/HomePage";
 import FavoritesPage from "../../pages/FavoritesPage";
+import AppLayout from "../AppLayout/AppLayout";
 import "./App.css";
 
 function App() {
@@ -13,6 +13,7 @@ function App() {
     const stored = localStorage.getItem("favorites");
     return stored ? new Set<string>(JSON.parse(stored)) : new Set<string>();
   });
+
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

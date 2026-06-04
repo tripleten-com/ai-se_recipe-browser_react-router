@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 
 import { categoryColors } from "../data/recipes";
+
 import type { Recipe } from "../types";
 
 type Props = {
@@ -10,10 +11,11 @@ type Props = {
 
 function RecipePage({ recipes }: Props) {
   const { id } = useParams();
-  const currentRecipe = recipes.find((recipe) => recipe.id === id);
 
-  if (!currentRecipe) {
-    return <p className="app__message">Recipe not found</p>;
+  const recipe = recipes.find((p) => p.id === id);
+
+  if (!recipe) {
+    return <p className="app__message">Recipe not found.</p>;
   }
 
   return (
@@ -22,16 +24,16 @@ function RecipePage({ recipes }: Props) {
         <span
           style={{
             backgroundColor:
-              categoryColors[currentRecipe.category.toLocaleLowerCase()],
+              categoryColors[recipe.category.toLocaleLowerCase()],
           }}
           className="recipe-detail__category"
         >
-          {currentRecipe.category}
+          {recipe.category}
         </span>
-        <h1>{currentRecipe.title}</h1>
-        <p>{currentRecipe.description}</p>
+        <h1>{recipe.title}</h1>
+        <p>{recipe.description}</p>
         <div className="markdown">
-          <ReactMarkdown>{currentRecipe.content}</ReactMarkdown>
+          <ReactMarkdown>{recipe.content}</ReactMarkdown>
         </div>
       </div>
     </article>
