@@ -1,6 +1,6 @@
 # Recipe Browser React Router
 
-This is the starting code for the React Router chapter in TripleTen's AI-Assisted Software Engineering program.
+These are the solutions for the React Router chapter in TripleTen's AI Software Engineering program.
 
 ## Tests
 
@@ -8,4 +8,4 @@ Tests for each lesson are found in `tests/` and can be run with `node tests/less
 
 ## Solutions
 
-Solutions can be found in the `solutions-react-router` branch.
+Solutions can be found in the `solutions` branch.
