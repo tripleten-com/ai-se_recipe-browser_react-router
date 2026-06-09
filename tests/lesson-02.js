@@ -60,6 +60,8 @@ test("App.tsx exists", () => {
   assert(app !== null, "src/components/App/App.tsx not found");
 });
 
+let localRoutesName = 'Routes';
+let localRouteName = 'Route';
 test("App.tsx imports Routes and Route from react-router-dom", () => {
   const el = findQuerySelector(appAst, "ImportDeclaration:has([name='Routes'])")?.[0];
   localRoutesName = el?.specifiers?.[0]?.local?.name;
