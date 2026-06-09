@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
+import { checkCompiles, checkBuilds, normalize, parseFileContent, findQuerySelector } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -53,7 +53,10 @@ if (!built.ok) {
 console.log("✅ App builds and runs without errors\n");
 
 const layout = read("src/components/AppLayout/AppLayout.tsx");
-const app = read("src/components/App/App.tsx");
+const layoutAst = parseFileContent(readFileSync(join(root, "src/components/AppLayout/AppLayout.tsx"), "utf8"));
+const appAst = parseFileContent(readFileSync(join(root, "src/components/App/App.tsx"), "utf8"));
+const appLayoutCss = read("src/components/AppLayout/AppLayout.css");
+const appCss = read("src/components/App/App.css");
 
 test("src/components/AppLayout/AppLayout.tsx exists", () => {
   assert(
@@ -63,24 +66,71 @@ test("src/components/AppLayout/AppLayout.tsx exists", () => {
 });
 
 test("AppLayout.tsx imports Outlet from react-router-dom", () => {
-  assert(
-    layout && layout.includes("Outlet"),
-    "AppLayout.tsx does not import Outlet from react-router-dom",
-  );
+  const el = findQuerySelector(layoutAst, "ImportDeclaration:has([name='Outlet'])")?.[0];
+  assert(!!el, "AppLayout.tsx does not import Outlet from react-router-dom");
 });
 
 test("AppLayout.tsx renders <Outlet />", () => {
+  const el = findQuerySelector(layoutAst, "JSXElement:has([openingElement.name.name='Outlet'])")?.[0];
+  assert(!!el, "AppLayout.tsx does not render <Outlet /> — add it where child route content should appear");
+});
+
+test("App.tsx wraps page routes in a parent Route with AppLayout", () => {
+  const routesEl = findQuerySelector(appAst, "JSXElement[openingElement.name.name='Routes']")?.[0];
+  const topLevelRoutes =
+    routesEl?.children?.filter(
+      (child) => child.type === "JSXElement" && child.openingElement?.name?.name === "Route",
+    ) ?? [];
+
+  const layoutRoute = topLevelRoutes.find((route) => {
+    const elementAttr = route.openingElement?.attributes?.find((a) => a.name?.name === "element");
+    const elementJsx = elementAttr?.value?.expression;
+    return elementJsx?.type === "JSXElement" && elementJsx.openingElement?.name?.name === "AppLayout";
+  });
+
+  const nestedRoutes =
+    layoutRoute?.children?.filter(
+      (child) => child.type === "JSXElement" && child.openingElement?.name?.name === "Route",
+    ) ?? [];
+
+  const hasHomeRoute = nestedRoutes.some(
+    (route) =>
+      route.openingElement?.attributes?.some((a) => a.name?.name === "index") ||
+      route.openingElement?.attributes?.some((a) => a.name?.name === "path" && a.value?.value === "/"),
+  );
+  const hasFavoritesRoute = nestedRoutes.some((route) =>
+    route.openingElement?.attributes?.some((a) => a.name?.name === "path" && a.value?.value === "/favorites"),
+  );
+
   assert(
-    layout && layout.includes("<Outlet"),
-    "AppLayout.tsx does not render <Outlet /> — add it where child route content should appear",
+    !!layoutRoute && hasHomeRoute && hasFavoritesRoute,
+    "Inside <Routes>, wrap your home and favorites routes in a parent <Route element={<AppLayout />}>",
   );
 });
 
-test("App.tsx uses AppLayout as a layout route", () => {
+test("App.css is deleted", () => {
+  assert(appCss === null, "src/components/App/App.css still exists — move its styles to AppLayout.css and delete it");
+});
+
+test("AppLayout.css contains styles moved from App.css", () => {
+  const requiredClasses = [".app", ".app__main", ".app__container", ".app__heading", ".app__search", ".app__loading"];
+  const missing = requiredClasses.filter((cls) => !appLayoutCss?.includes(cls));
   assert(
-    app && app.includes("AppLayout"),
-    "App.tsx does not use AppLayout — wrap your routes with <Route element={<AppLayout />}>",
+    appLayoutCss !== null && missing.length === 0,
+    missing.length > 0
+      ? `AppLayout.css is missing styles: ${missing.join(", ")} — move them from App.css`
+      : "src/components/AppLayout/AppLayout.css not found",
   );
+});
+
+test("App.tsx does not import App.css", () => {
+  const el = findQuerySelector(appAst, "ImportDeclaration[source.value='./App.css']")?.[0];
+  assert(!el, "App.tsx still imports App.css — remove the import after moving styles to AppLayout.css");
+});
+
+test("AppLayout.tsx imports AppLayout.css", () => {
+  const el = findQuerySelector(layoutAst, "ImportDeclaration[source.value='./AppLayout.css']")?.[0];
+  assert(!!el, "AppLayout.tsx does not import AppLayout.css");
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);
