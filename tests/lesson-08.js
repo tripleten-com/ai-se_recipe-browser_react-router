@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
+import { checkCompiles, checkBuilds, normalize, parseFileContent, findQuerySelector } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -32,6 +32,44 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function getRoutePath(routeEl) {
+  const pathAttr = routeEl.openingElement?.attributes?.find((a) => a.name?.name === "path");
+  return pathAttr?.value?.value ?? pathAttr?.value?.expression?.value;
+}
+
+function wildcardRouteIsLast(ast) {
+  let valid = true;
+
+  function visit(node) {
+    if (!node || typeof node !== "object") return;
+
+    if (node.type === "JSXElement") {
+      const routeChildren =
+        node.children?.filter(
+          (child) => child.type === "JSXElement" && child.openingElement?.name?.name === "Route",
+        ) ?? [];
+
+      if (routeChildren.length > 0) {
+        const wildcardIndex = routeChildren.findIndex((route) => getRoutePath(route) === "*");
+        if (wildcardIndex !== -1 && wildcardIndex !== routeChildren.length - 1) {
+          valid = false;
+        }
+      }
+    }
+
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) {
+        value.forEach(visit);
+      } else if (value && typeof value === "object" && value.type) {
+        visit(value);
+      }
+    }
+  }
+
+  visit(ast);
+  return valid;
+}
+
 console.log("\nLesson 08: Not Found Routes\n");
 
 const compiled = checkCompiles(root);
@@ -51,37 +89,55 @@ if (!built.ok) {
 console.log("✅ App builds and runs without errors\n");
 
 const app = read("src/components/App/App.tsx");
-const notFound = read("src/pages/NotFoundPage.tsx");
+const appAst = parseFileContent(readFileSync(join(root, "src/components/App/App.tsx"), "utf8"));
+const notFoundPath = "src/pages/NotFoundPage.tsx";
+const notFound = read(notFoundPath);
+let notFoundAst = null;
+try {
+  notFoundAst = parseFileContent(readFileSync(join(root, notFoundPath), "utf8"));
+} catch {
+  notFoundAst = null;
+}
 
 test("src/pages/NotFoundPage.tsx exists", () => {
   assert(notFound !== null, "src/pages/NotFoundPage.tsx not found — create it in src/pages/");
 });
 
 test("NotFoundPage.tsx imports Link from react-router-dom", () => {
-  assert(
-    notFound && notFound.includes("Link"),
-    "NotFoundPage.tsx does not import or use Link from react-router-dom — add a Link back to /"
-  );
+  const el = findQuerySelector(notFoundAst, "ImportDeclaration:has([name='Link'])")?.[0];
+  assert(!!el, "NotFoundPage.tsx does not import or use Link from react-router-dom — add a Link back to /");
 });
 
-test("NotFoundPage.tsx links back to /", () => {
-  assert(
-    notFound && /to\s*=\s*["']\/["']/.test(notFound),
-    'NotFoundPage.tsx does not contain a Link back to "/" — add one so users can recover'
+test('NotFoundPage.tsx links back to /', () => {
+  const links = findQuerySelector(notFoundAst, "JSXElement[openingElement.name.name='Link']");
+  const homeLink = links?.find((el) =>
+    el.openingElement?.attributes?.some(
+      (a) => a.name?.name === "to" && (a.value?.value === "/" || a.value?.expression?.value === "/"),
+    ),
   );
+  assert(!!homeLink, 'NotFoundPage.tsx does not contain a Link back to "/" — add one so users can recover');
 });
 
 test('App.tsx has a wildcard route with path="*"', () => {
-  assert(
-    app && /path\s*=\s*["']\*["']/.test(app),
-    'App.tsx does not have a wildcard route — add <Route path="*" element={<NotFoundPage />} />'
-  );
+  const routes = findQuerySelector(appAst, "JSXElement[openingElement.name.name='Route']");
+  const wildcardRoute = routes?.find((el) => {
+    const pathAttr = el.openingElement?.attributes?.find((a) => a.name?.name === "path");
+    return pathAttr?.value?.value === "*" || pathAttr?.value?.expression?.value === "*";
+  });
+  assert(!!wildcardRoute, 'App.tsx does not have a wildcard route — add <Route path="*" element={<NotFoundPage />} />');
 });
 
 test("App.tsx renders NotFoundPage on the wildcard route", () => {
+  const importEl = findQuerySelector(appAst, "ImportDeclaration:has([name='NotFoundPage'])")?.[0];
+  const rendersNotFound =
+    findQuerySelector(appAst, "JSXElement[openingElement.name.name='NotFoundPage']").length > 0;
+  assert(!!importEl && rendersNotFound, "App.tsx does not import or render NotFoundPage on the wildcard route");
+});
+
+test("App.tsx places the wildcard route last", () => {
   assert(
-    app && app.includes("NotFoundPage"),
-    "App.tsx does not import or render NotFoundPage on the wildcard route"
+    wildcardRouteIsLast(appAst),
+    'App.tsx wildcard route must be the last <Route> among its siblings — move <Route path="*" ... /> to the end',
   );
 });
 
