@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
+import { checkCompiles, checkBuilds, normalize, parseFileContent, findQuerySelector } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -51,26 +51,30 @@ if (!built.ok) {
 console.log("✅ App builds and runs without errors\n");
 
 const pkg = read("package.json");
-const recipePage = read("src/pages/RecipePage.tsx");
+const recipePagePath = "src/pages/RecipePage.tsx";
+const recipePageAst = parseFileContent(join(root, recipePagePath));
 
 test("react-markdown is listed as a dependency", () => {
   assert(
     pkg && pkg.includes("react-markdown"),
-    "react-markdown not found in package.json — did you run npm install react-markdown?"
+    "react-markdown not found in package.json — did you run npm install react-markdown?",
   );
 });
 
 test("RecipePage.tsx imports ReactMarkdown", () => {
-  assert(
-    recipePage && recipePage.includes("ReactMarkdown"),
-    "RecipePage.tsx does not import ReactMarkdown from react-markdown"
-  );
+  const el = findQuerySelector(recipePageAst, "ImportDeclaration:has([name='ReactMarkdown'])")?.[0];
+  assert(!!el, "RecipePage.tsx does not import ReactMarkdown from react-markdown");
 });
 
 test("RecipePage.tsx renders content with ReactMarkdown", () => {
+  const rendersContentInMarkdown =
+    findQuerySelector(
+      recipePageAst,
+      "JSXElement[openingElement.name.name='ReactMarkdown'] JSXExpressionContainer MemberExpression[object.name='recipe'][property.name='content']",
+    ).length > 0;
   assert(
-    recipePage && recipePage.includes("<ReactMarkdown"),
-    "RecipePage.tsx does not render <ReactMarkdown> — use it to wrap recipe.content"
+    !!rendersContentInMarkdown,
+    "RecipePage.tsx does not render recipe.content inside <ReactMarkdown> — pass recipe.content as children",
   );
 });
 

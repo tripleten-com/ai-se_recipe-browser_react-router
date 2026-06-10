@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
+import { checkCompiles, checkBuilds, normalize, parseFileContent, findQuerySelector } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -50,41 +50,48 @@ if (!built.ok) {
 }
 console.log("✅ App builds and runs without errors\n");
 
-const recipeCard = read("src/components/RecipeCard/RecipeCard.tsx");
+const recipeCardPath = "src/components/RecipeCard/RecipeCard.tsx";
+const recipeCard = read(recipeCardPath);
+const recipeCardAst = parseFileContent(join(root, recipeCardPath));
 
 test("RecipeCard.tsx exists", () => {
   assert(recipeCard !== null, "src/components/RecipeCard/RecipeCard.tsx not found");
 });
 
 test("RecipeCard.tsx imports useNavigate from react-router-dom", () => {
-  assert(
-    recipeCard && recipeCard.includes("useNavigate"),
-    "RecipeCard.tsx does not import useNavigate from react-router-dom"
-  );
+  const el = findQuerySelector(recipeCardAst, "ImportDeclaration:has([name='useNavigate'])")?.[0];
+  assert(!!el, "RecipeCard.tsx does not import useNavigate from react-router-dom");
 });
 
 test("RecipeCard.tsx calls useNavigate() to get the navigate function", () => {
-  assert(
-    recipeCard && recipeCard.includes("useNavigate()"),
-    "RecipeCard.tsx does not call useNavigate() — call it at the top of the component"
-  );
+  const el = findQuerySelector(recipeCardAst, "CallExpression[callee.name='useNavigate']")?.[0];
+  assert(!!el, "RecipeCard.tsx does not call useNavigate() — call it at the top of the component");
 });
 
 test("RecipeCard.tsx calls navigate() in a click handler", () => {
-  assert(
-    recipeCard && recipeCard.includes("navigate("),
-    "RecipeCard.tsx does not call navigate() — call it inside the button's onClick handler"
-  );
+  const el = findQuerySelector(recipeCardAst, "CallExpression[callee.name='navigate']")?.[0];
+  assert(!!el, "RecipeCard.tsx does not call navigate() — call it inside the button's onClick handler");
 });
 
 test("RecipeCard.tsx navigates to a /recipes/ path", () => {
+  const navigateCalls = findQuerySelector(recipeCardAst, "CallExpression[callee.name='navigate']");
+  const usesTemplateLiteralWithRecipeId = navigateCalls?.some((call) => {
+    const arg = call.arguments?.[0];
+    if (arg?.type !== "TemplateLiteral") return false;
+    const hasRecipesPath = arg.quasis?.some(
+      (q) => q.value?.raw?.includes("recipes/") || q.value?.cooked?.includes("recipes/"),
+    );
+    const hasRecipeId = arg.expressions?.some(
+      (expr) =>
+        expr.type === "MemberExpression" &&
+        expr.object?.name === "recipe" &&
+        expr.property?.name === "id",
+    );
+    return hasRecipesPath && hasRecipeId;
+  });
   assert(
-    recipeCard && (
-      recipeCard.includes("recipes/") ||
-      recipeCard.includes("recipes/${") ||
-      recipeCard.includes("`/recipes/")
-    ),
-    "RecipeCard.tsx does not navigate to a /recipes/ path — use a template literal: `/recipes/${recipe.id}`"
+    !!usesTemplateLiteralWithRecipeId,
+    "RecipeCard.tsx does not navigate to a /recipes/ path — use a template literal: `/recipes/${recipe.id}`",
   );
 });
 
