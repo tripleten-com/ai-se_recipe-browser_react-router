@@ -6,7 +6,7 @@
 
 .app__main {
   flex: 1;
-  padding: 40px 24px;
+  padding: 48px 24px;
 }
 
 .app__container {
@@ -17,32 +17,71 @@
   gap: 32px;
 }
 
-.app__heading {
-  font-size: 28px;
-  font-weight: 600;
+.app__heading,
+.app__loading,
+.app__message {
   color: var(--color-text-primary);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.5;
+  letter-spacing: 0.0703125px;
+}
+
+.app__heading_not-found {
+  text-align: center;
+  margin-top: 120px;
+}
+
+.app__back {
+  color: rgb(10 10 10);
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  opacity: 50%;
+}
+
+.app__back:hover {
+  opacity: 100%;
+}
+
+.app__back:hover .app__back::before {
+  opacity: 100%;
+}
+
+.app__back::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  display: block;
+  background-image: url(../../assets/left-arrow.png);
+}
+
+.app__loading,
+.app__message {
+  font-size: 18px;
+  text-align: center;
+  margin-top: 80px;
+}
+
+.app__message_not-found {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  margin-top: 18px;
+  text-align: center;
 }
 
 .app__search {
+  padding: 19.5px 24px;
+  font-size: 14px;
+  letter-spacing: -0.15px;
   width: 100%;
-  padding: 10px 16px;
-  font-family: inherit;
-  font-size: 16px;
-  color: var(--color-text-primary);
-  background-color: #ffffff;
-  border: 1px solid rgb(0 0 0 / 0.14);
-  border-radius: 10px;
-  outline: none;
-  box-sizing: border-box;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
 }
 
-.app__search:focus {
-  border-color: #1878dc;
-  box-shadow: 0 0 0 3px rgb(24 120 220 / 0.15);
-}
-
-.app__loading {
-  padding: 32px 0;
-  text-align: center;
-  color: var(--color-text-secondary);
+.app__search:hover::placeholder {
+  color: #0a0a0a;
 }

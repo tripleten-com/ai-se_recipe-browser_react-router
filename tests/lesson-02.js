@@ -36,7 +36,9 @@ console.log("\nLesson 02: Defining Routes\n");
 
 const compiled = checkCompiles(root);
 if (!compiled.ok) {
-  console.log("❌ TypeScript compilation failed — fix all type errors before running tests\n");
+  console.log(
+    "❌ TypeScript compilation failed — fix all type errors before running tests\n",
+  );
   console.log(compiled.output);
   process.exit(1);
 }
@@ -71,11 +73,17 @@ test("App.tsx imports Routes and Route from react-router-dom", () => {
 });
 
 test("src/pages/HomePage.tsx exists", () => {
-  assert(homePage !== null, "src/pages/HomePage.tsx not found — create it in the src/pages/ directory");
+  assert(
+    homePage !== null,
+    "src/pages/HomePage.tsx not found — create it in the src/pages/ directory",
+  );
 });
 
 test("src/pages/FavoritesPage.tsx exists", () => {
-  assert(favPage !== null, "src/pages/FavoritesPage.tsx not found — create it in the src/pages/ directory");
+  assert(
+    favPage !== null,
+    "src/pages/FavoritesPage.tsx not found — create it in the src/pages/ directory",
+  );
 });
 
 test("App.tsx has a route for the home path", () => {

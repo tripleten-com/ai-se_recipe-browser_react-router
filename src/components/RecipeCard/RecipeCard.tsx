@@ -1,4 +1,5 @@
 import type { Recipe } from "../../types";
+import { categoryColors } from "../../data/recipes";
 import "./RecipeCard.css";
 
 import heartIcon from "../../assets/heart.svg";
@@ -13,7 +14,14 @@ type Props = {
 function RecipeCard({ recipe, onToggleFavorite, isFavorited }: Props) {
   return (
     <article className="recipe-card">
-      <span className="recipe-card__category">{recipe.category}</span>
+      <span
+        style={{
+          backgroundColor: categoryColors[recipe.category.toLocaleLowerCase()],
+        }}
+        className="recipe-card__category"
+      >
+        {recipe.category}
+      </span>
       <h2 className="recipe-card__title">{recipe.title}</h2>
       <p className="recipe-card__description">{recipe.description}</p>
       <button
