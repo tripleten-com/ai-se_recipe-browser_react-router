@@ -1,4 +1,7 @@
 import { execSync } from "child_process";
+import esquery from "esquery";
+import { parse } from "@babel/parser";
+import { readFileSync } from "fs";
 
 /**
  * Collapses all whitespace sequences to a single space and trims the result.
@@ -40,3 +43,26 @@ export function checkBuilds(root) {
     return { ok: false, output };
   }
 }
+
+
+/**
+ * Parses a file into an AST tree.
+ */
+export function parseFileContent(filePath) {
+  try {
+    const fileContent = readFileSync(filePath, "utf8");
+    return parse(fileContent, { sourceType: "module", plugins: ["jsx", "typescript"] });
+  } catch (error) {
+    return null;
+  }
+}
+
+
+/**
+ * Finds all JSX elements in an AST tree.
+ */
+export function findQuerySelector(ast, selector) {
+  return esquery(ast, selector);
+}
+
+
