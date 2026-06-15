@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
+import { checkCompiles, checkBuilds, normalize, parseFileContent, findQuerySelector } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -52,6 +52,7 @@ console.log("✅ App builds and runs without errors\n");
 
 const pkg = read("package.json");
 const main = read("src/main.tsx");
+const mainAst = parseFileContent(join(root, "src/main.tsx"));
 
 test("package.json exists", () => {
   assert(pkg !== null, "package.json not found");
@@ -64,18 +65,21 @@ test("react-router-dom is listed as a dependency", () => {
   );
 });
 
+test("main.tsx exists", () => {
+  assert(main !== null, "src/main.tsx not found");
+});
+
+let localBrowserRouter = 'BrowserRouter';
 test("main.tsx imports BrowserRouter from react-router-dom", () => {
-  assert(
-    main && main.includes("BrowserRouter"),
-    "main.tsx does not import BrowserRouter from react-router-dom"
-  );
+  const el = findQuerySelector(mainAst, "ImportDeclaration:has([name='BrowserRouter'])")?.[0];
+  if (el) localBrowserRouter = el?.specifiers?.[0]?.local?.name;
+  assert(!!el, "main.tsx does not import BrowserRouter from react-router-dom");
 });
 
 test("main.tsx wraps the app with BrowserRouter", () => {
-  assert(
-    main && /<BrowserRouter\s*>/.test(main),
-    "main.tsx does not render <BrowserRouter> — wrap <App /> with it"
-  );
+  const browserRouterEl = findQuerySelector(mainAst, `JSXElement:has([name='${localBrowserRouter}'])`)?.[0];
+  const appEl = browserRouterEl && findQuerySelector(browserRouterEl, "JSXElement:has([name='App'])")?.[0];
+  assert(!!appEl, "main.tsx does not render <BrowserRouter> — wrap <App /> with it");
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

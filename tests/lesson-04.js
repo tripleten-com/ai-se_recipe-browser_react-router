@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { checkCompiles, checkBuilds, normalize } from "./lib/utils.js";
+import { checkCompiles, checkBuilds, normalize, parseFileContent, findQuerySelector } from "./lib/utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -51,36 +51,63 @@ if (!built.ok) {
 console.log("✅ App builds and runs without errors\n");
 
 const header = read("src/components/Header/Header.tsx");
+const headerAst = parseFileContent(join(root, "src/components/Header/Header.tsx"));
 
 test("Header.tsx exists", () => {
   assert(header !== null, "src/components/Header/Header.tsx not found");
 });
 
 test("Header.tsx imports NavLink from react-router-dom", () => {
-  assert(
-    header && header.includes("NavLink"),
-    "Header.tsx does not import NavLink from react-router-dom"
-  );
+  const el = findQuerySelector(headerAst, "ImportDeclaration:has([name='NavLink'])")?.[0];
+  assert(!!el, "Header.tsx does not import NavLink from react-router-dom");
 });
 
 test("Header.tsx renders NavLink elements", () => {
-  assert(
-    header && header.includes("<NavLink"),
-    "Header.tsx does not render any <NavLink> elements"
-  );
+  const els = findQuerySelector(headerAst, "JSXElement[openingElement.name.name='NavLink']");
+  assert(els?.length > 0, "Header.tsx does not render any <NavLink> elements");
+});
+
+test('Header.tsx includes a link to / with the label "Recipes"', () => {
+  const els = findQuerySelector(headerAst, "JSXElement[openingElement.name.name='NavLink']");
+  const recipesLink = els?.find((el) => {
+    const hasHomePath = el.openingElement?.attributes?.some(
+      (a) =>
+        a.name?.name === "to" &&
+        (a.value?.value === "/" || a.value?.expression?.value === "/"),
+    );
+    const hasRecipesLabel = el.children?.some(
+      (child) => child.type === "JSXText" && child.value.trim() === "Recipes",
+    );
+    return hasHomePath && hasRecipesLabel;
+  });
+  assert(!!recipesLink, 'Header.tsx does not have a NavLink to "/" labeled "Recipes" — add one to the nav');
 });
 
 test("Header.tsx includes a link to /favorites", () => {
-  assert(
-    header && header.includes("favorites"),
-    'Header.tsx does not have a NavLink to "/favorites" — add one to the nav'
+  const els = findQuerySelector(headerAst, "JSXElement[openingElement.name.name='NavLink']");
+  const favoritesLink = els?.find((el) =>
+    el.openingElement?.attributes?.some(
+      (a) =>
+        a.name?.name === "to" &&
+        (a.value?.value === "/favorites" || a.value?.expression?.value === "/favorites"),
+    ),
   );
+  assert(!!favoritesLink, 'Header.tsx does not have a NavLink to "/favorites" — add one to the nav');
 });
 
 test("Header.tsx uses a named className function for active styling", () => {
+  const namedFn =
+    findQuerySelector(headerAst, "FunctionDeclaration:has(Identifier[name='isActive'])")?.[0] ||
+    findQuerySelector(headerAst, "VariableDeclarator[id.name]:has(Identifier[name='isActive'])")?.[0];
+  const navLinks = findQuerySelector(headerAst, "JSXElement[openingElement.name.name='NavLink']");
+  const usesClassNameFn = navLinks?.every((el) => {
+    const classNameAttr = el.openingElement?.attributes?.find((a) => a.name?.name === "className");
+    const expr = classNameAttr?.value?.expression;
+    return expr?.type === "Identifier" || expr?.type === "MemberExpression";
+  });
   assert(
-    header && header.includes("isActive"),
-    "Header.tsx does not use a className function with isActive — define a named function and pass it to each NavLink"
+    !!namedFn && usesClassNameFn,
+    "Header.tsx does not use a className function with isActive — define a named function and pass it to each NavLink",
   );
 });
 
